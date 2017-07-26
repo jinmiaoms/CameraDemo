@@ -114,7 +114,7 @@ function processImage(picUrl) {
             'Content-Type': 'application/json',
             'Ocp-Apim-Subscription-Key': subscriptionKey
         },
-        
+        data: '{"url": ' + '"' + picUrl + '"}'
     };
 
     // Perform the REST API call.
