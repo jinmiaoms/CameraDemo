@@ -6,7 +6,7 @@ var accessStr = 'accessToken=at.5gsgxsz92uuhxnyn41dpfuru87lno9k6-1l8wr7bzxd-1gjx
 var alarmURLBase = 'https://open.ys7.com/api/lapp/alarm/list' + '?' +
                     accessStr + 'status=2';
 var captureURL = 'https://open.ys7.com/api/lapp/device/capture' + '?' + accessStr;
-var picUrl;
+var picUrl = "https://s.yimg.com/ny/api/res/1.2/gHdeZYeIMSl6nC5Fz__2jw--/YXBwaWQ9aGlnaGxhbmRlcjtzbT0xO3c9NzQ0O2g9NDk2/http://media.zenfs.com/en/homerun/feed_manager_auto_publish_494/7ecd920c717cafe9754deada28caea9b";
 
 const querystring = require('querystring');
 
@@ -76,6 +76,14 @@ function capture() {
     httpReq.post(options, captureCallback);
 }
 
+function showError(error) {
+    if (!error) {
+        var errInfo = JSON.parse(error);
+        console.log("error code: " + errInfo.code);
+        console.log("error message: " + errInfo.message);
+    }
+}
+
 function processImage(picUrl) {
     // **********************************************
     // *** Update or verify the following values. ***
@@ -104,47 +112,34 @@ function processImage(picUrl) {
     var paramsStr = querystring.stringify(params);
     console.log(paramsStr);
 
-    // Display the image.
-    var sourceImageUrl = document.getElementById("inputImage").value;
-    document.querySelector("#sourceImage").src = sourceImageUrl;
-
     var option = {
         url: uriBase + '?' + paramsStr,
+        json: true,
         headers: {
             'Content-Type': 'application/json',
             'Ocp-Apim-Subscription-Key': subscriptionKey
         },
-        data: '{"url": ' + '"' + picUrl + '"}'
+        body: {
+            'url': picUrl
+        }
     };
 
-    // Perform the REST API call.
-    $.ajax({
-        url: uriBase + "?" + $.param(params),
-
-        // Request headers.
-        beforeSend: function (xhrObj) {
-            xhrObj.setRequestHeader("Content-Type", "application/json");
-            xhrObj.setRequestHeader("Ocp-Apim-Subscription-Key", subscriptionKey);
-        },
-
-        type: "POST",
-
-        // Request body.
-        data: '{"url": ' + '"' + sourceImageUrl + '"}',
-    })
-
-        .done(function (data) {
-            // Show formatted JSON on webpage.
-            $("#responseTextArea").val(JSON.stringify(data, null, 2));
-        })
-
-        .fail(function (jqXHR, textStatus, errorThrown) {
-            // Display error message.
-            var errorString = (errorThrown === "") ? "Error. " : errorThrown + " (" + jqXHR.status + "): ";
-            errorString += (jqXHR.responseText === "") ? "" : (jQuery.parseJSON(jqXHR.responseText).message) ?
-                jQuery.parseJSON(jqXHR.responseText).message : jQuery.parseJSON(jqXHR.responseText).error.message;
-            alert(errorString);
-        });
+    httpReq.post(option, function (error, response, body) {
+        if (!error && response.statusCode == 200) {
+            var bodyStr = JSON.stringify(body[0]);
+            console.log(bodyStr);
+            var info = JSON.parse(bodyStr);
+            console.log("body: " + info.faceAttributes);
+        }
+        else {
+            if (error)
+                showError(error);
+            else
+                console.log("statusCode: " + response.statusCode);
+        }
+    });
 };
 
-getAlarms(5);
+//getAlarms(5);
+processImage(picUrl);
+
